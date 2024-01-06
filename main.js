@@ -35,14 +35,24 @@ class GUI {
                 cell.classList.add('cell');
                 cell.setAttribute('data-coordinate', `${i},${j}`);
                 cell.addEventListener('click', () => {
-                    this.myGame.playerChoose(i, j);
-                    cell.innerText = this.myGame.board[i][j];
-                    this.myGame.checkForWin();
-                    console.log(this.myGame.board);
+                    if (!this.myGame.checkForWin()) {
+                        this.myGame.playerChoose(i, j);
+                        cell.innerText = this.myGame.board[i][j];
+                        this.myGame.checkForWin();
+                        this.displayProfiles();
+                        console.log(this.myGame.board);
+                    }
+                    onsole.log(this.myGame.board);
                 });
                 row.appendChild(cell);
             }
             board.appendChild(row);
+        }
+    }
+    resetDisplay() {
+        let cells = document.querySelectorAll('.cell');
+        for (let i = 0; i < cells.length; i++) {
+            cells[i].innerText = '';
         }
     }
     hideButton() {
@@ -59,30 +69,32 @@ class Game {
              [3, 4, 5], 
              [6, 7, 8]];
     playerChoose(k, l) {
-        if (this.player1.playerType == 'X' && this.player1.tookTurn == false) {
-            for (let i = 0; i < this.board.length; i++) {
-                for (let j = 0; j < this.board.length; j++) {
-                    if (i == k && j == l) {
-                    this.board[i][j] = 'X';
-                    break;
+        if (this.board[k][l] != 'X' && this.board[k][l] != 'O') {
+            if (this.player1.playerType == 'X' && this.player1.tookTurn == false) {
+                for (let i = 0; i < this.board.length; i++) {
+                    for (let j = 0; j < this.board.length; j++) {
+                        if (i == k && j == l) {
+                        this.board[i][j] = 'X';
+                        break;
+                        }
                     }
                 }
+                this.player1.tookTurn = true;
+                this.player2.tookTurn = false;
             }
-            this.player1.tookTurn = true;
-            this.player2.tookTurn = false;
-        }
-        else {
-            for (let i = 0; i < this.board.length; i++) {
-                for (let j = 0; j < this.board.length; j++) {
-                    if (i == k && j == l) {
-                    this.board[i][j] = 'O';
-                    break;
+            else {
+                for (let i = 0; i < this.board.length; i++) {
+                    for (let j = 0; j < this.board.length; j++) {
+                        if (i == k && j == l) {
+                        this.board[i][j] = 'O';
+                        break;
+                        }
                     }
-                }
-            } 
+                } 
             this.player2.tookTurn = true;
             this.player1.tookTurn = false;
-        }
+            }
+        } 
     }
     checkForWin() {
         //top across
@@ -181,17 +193,20 @@ class Game {
     gameOver() {
         if (this.player1.wins > this.player2.wins) {
             console.log("Player 1 wins!");
-            this.resetGame();
+            this.player1.tookTurn = false;
+            this.player2.tookTurn = true;
             return true;
         }
         else if (this.player1.wins < this.player2.wins) {
             console.log("Player 2 wins!");
-            this.resetGame();
+            this.player1.tookTurn = false;
+            this.player2.tookTurn = true;
             return true;
         }
         else if (this.player1.wins == this.player2.wins) {
+            this.player1.tookTurn = false;
+            this.player2.tookTurn = true;
             console.log("Tie!");
-            this.resetGame();
             return true;
         }
         else return false;
@@ -212,10 +227,8 @@ function hideButton(myGUI) {
 }
 
 function main() {
-    let name1 = "PLACEHOLDER";
-    let name2 = "PLACEHOLDER";
-    let player1 = new Player('X', false, name1);
-    let player2 = new Player('O', true, name2);
+    let player1 = new Player('X', false, "PLACEHOLDER");
+    let player2 = new Player('O', true, "PLACEHOLDER");
     let myGame = new Game(player1, player2);
     let myGUI = new GUI(player1, player2, myGame);
 
@@ -236,8 +249,9 @@ function main() {
     console.log(myGame.board);
 
     myGUI.playAgainButton.addEventListener('click', () => {
-        player1.wins = 0;
-        player2.wins = 0;
+        myGame.resetGame();
+        myGUI.resetDisplay();
+        console.log(myGame.board);
     })
 }
 
