@@ -1,8 +1,9 @@
 class Player {
-    constructor(playerType, tookTurn, name) {
+    constructor(playerType, tookTurn, name, turnsLeft) {
         this.name = name;
         this.playerType = playerType;
         this.tookTurn = tookTurn;
+        this.turnsLeft = turnsLeft;
     }
     wins = 0;
 }
@@ -35,14 +36,13 @@ class GUI {
                 cell.classList.add('cell');
                 cell.setAttribute('data-coordinate', `${i},${j}`);
                 cell.addEventListener('click', () => {
-                    if (!this.myGame.checkForWin()) {
+                    if (this.myGame.locked == false) {
                         this.myGame.playerChoose(i, j);
                         cell.innerText = this.myGame.board[i][j];
                         this.myGame.checkForWin();
                         this.displayProfiles();
                         console.log(this.myGame.board);
                     }
-                    onsole.log(this.myGame.board);
                 });
                 row.appendChild(cell);
             }
@@ -68,6 +68,8 @@ class Game {
     board = [[0, 1, 2], 
              [3, 4, 5], 
              [6, 7, 8]];
+    movesAvailable = 9;
+    locked = false;
     playerChoose(k, l) {
         if (this.board[k][l] != 'X' && this.board[k][l] != 'O') {
             if (this.player1.playerType == 'X' && this.player1.tookTurn == false) {
@@ -81,6 +83,9 @@ class Game {
                 }
                 this.player1.tookTurn = true;
                 this.player2.tookTurn = false;
+                this.player1.turnsLeft--;
+                this.movesAvailable--;
+                console.log(this.movesAvailable);
             }
             else {
                 for (let i = 0; i < this.board.length; i++) {
@@ -91,22 +96,29 @@ class Game {
                         }
                     }
                 } 
-            this.player2.tookTurn = true;
-            this.player1.tookTurn = false;
+                this.player2.tookTurn = true;
+                this.player1.tookTurn = false;
+                this.player2.turnsLeft--;
+                this.movesAvailable--;
+                console.log(this.movesAvailable);
             }
         } 
     }
     checkForWin() {
+        if (this.movesAvailable <= 0) {
+            this.gameOver('N/A');
+            return true;
+        }
         //top across
         if ((this.board[0][0] == this.board[0][1]) && (this.board[0][1] == this.board[0][2])) {
             if (this.board[0][2] == 'X') {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
                 return true;
             }
         }
@@ -114,12 +126,12 @@ class Game {
         if ((this.board[0][0] == this.board[1][0]) && (this.board[1][0] == this.board[2][0])) {
             if (this.board[2][0] == 'X') {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
                 return true;
             }
         }
@@ -127,12 +139,12 @@ class Game {
         else if ((this.board[1][0] == this.board[1][1]) && (this.board[1][1] == this.board[1][2])) {
             if (this.board[1][2] == "X") {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
                 return true;
             }
         }
@@ -140,12 +152,12 @@ class Game {
         else if ((this.board[0][2] == this.board[1][2]) && (this.board[1][2] == this.board[2][2])) {
             if (this.board[2][2] == 'X') {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
                 return true;
             }
         }
@@ -153,12 +165,12 @@ class Game {
         else if ((this.board[2][0] == this.board[2][1]) && (this.board[2][1] == this.board[2][2])) {
             if (this.board[2][2] == 'X') {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
                 return true;
             }
         }
@@ -166,12 +178,25 @@ class Game {
         else if ((this.board[0][0] == this.board[1][1]) && (this.board[1][1] == this.board[2][2])) {
             if (this.board[2][2] == 'X') {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
+                return true;
+            }
+        }
+        //straight down
+        else if ((this.board[0][1] == this.board[1][1]) && (this.board[1][1] == this.board[2][1])) {
+            if (this.board[2][1] == 'X') {
+                this.player1.wins++;
+                this.gameOver('X');
+                return true;
+            }
+            else {
+                this.player2.wins++;
+                this.gameOver('O');
                 return true;
             }
         }
@@ -179,33 +204,38 @@ class Game {
         else if ((this.board[0][2] == this.board[1][1]) && (this.board[1][1] == this.board[2][0])) {
             if (this.board[2][0] == 'X') {
                 this.player1.wins++;
-                this.gameOver();
+                this.gameOver('X');
                 return true;
             }
             else {
                 this.player2.wins++;
-                this.gameOver();
+                this.gameOver('O');
                 return true;
             }
         }
-        else return false;
+        else {
+            return false;
+        }
     }
-    gameOver() {
-        if (this.player1.wins > this.player2.wins) {
+    gameOver(playerType) {
+        if (playerType == 'X') {
             console.log("Player 1 wins!");
             this.player1.tookTurn = false;
             this.player2.tookTurn = true;
+            this.locked = true;
             return true;
         }
-        else if (this.player1.wins < this.player2.wins) {
+        else if (playerType == 'O') {
             console.log("Player 2 wins!");
             this.player1.tookTurn = false;
             this.player2.tookTurn = true;
+            this.locked = true;
             return true;
         }
-        else if (this.player1.wins == this.player2.wins) {
+        else if (this.movesAvailable <= 0) {
             this.player1.tookTurn = false;
             this.player2.tookTurn = true;
+            this.locked = true;
             console.log("Tie!");
             return true;
         }
@@ -219,6 +249,10 @@ class Game {
                 else this.board[i][j] = j + 6;
             }
         }
+        this.player1.turnsLeft = 5;
+        this.player2.turnsLeft = 4;
+        this.movesAvailable = 9;
+        this.locked = false;
     }
 }
 
@@ -227,8 +261,8 @@ function hideButton(myGUI) {
 }
 
 function main() {
-    let player1 = new Player('X', false, "PLACEHOLDER");
-    let player2 = new Player('O', true, "PLACEHOLDER");
+    let player1 = new Player('X', false, "PLACEHOLDER", 5);
+    let player2 = new Player('O', true, "PLACEHOLDER", 4);
     let myGame = new Game(player1, player2);
     let myGUI = new GUI(player1, player2, myGame);
 
@@ -243,12 +277,10 @@ function main() {
         hideButton(myGUI);
     })
 
-    /* if (myGame.checkForWin(player1, player2)) {
-            myGame.gameOver(player1, player2);
-        } */
     console.log(myGame.board);
 
     myGUI.playAgainButton.addEventListener('click', () => {
+        myGame.locked = false;
         myGame.resetGame();
         myGUI.resetDisplay();
         console.log(myGame.board);
